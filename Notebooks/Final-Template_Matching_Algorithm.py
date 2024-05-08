@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import h5py
@@ -26,46 +26,45 @@ from TMfunctions import *
 
 
 
-# In[2]:
+# In[ ]:
 
 
 #loading data to run, write here the path for your data.
 
-file_list1 = glob.glob("/data/fast1/veronica-scratch-rainier-downsampling/drive1_ds/new_decimator_2023-08-25_01*")
+#file_list1 = glob.glob("/data/fast1/veronica-scratch-rainier-downsampling/drive1_ds/new_decimator_2023-08-25_01*")
 #file_list2 = glob.glob("/data/fast1/veronica-scratch-rainier-downsampling/drive1_ds/new_decimator_2023-08-26*")
-#file_list3 = glob.glob("/data/fast1/veronica-scratch-rainier-downsampling/drive1_ds/new_decimator_2023-08-27*")
+file_list3 = glob.glob("/data/fast1/veronica-scratch-rainier-downsampling/drive1_ds/new_decimator_2023-08-27*")
 #file_list4 = glob.glob("/data/fast1/veronica-scratch-rainier-downsampling/drive1_ds/new_decimator_2023-08-28*")
 #file_list5 = glob.glob("/data/fast1/veronica-scratch-rainier-downsampling/drive1_ds/new_decimator_2023-08-29*")
 #file_list6 = glob.glob("/data/fast1/veronica-scratch-rainier-downsampling/drive1_ds/new_decimator_2023-08-30*")
 #file_list7 = glob.glob("/data/fast1/veronica-scratch-rainier-downsampling/drive1_ds/new_decimator_2023-08-31*")
 
-file_list = file_list1 #+ file_list2 + file_list3 + file_list4 + file_list5 + file_list6 + file_list7 
+file_list = file_list3 #+ file_list2 + file_list3 + file_list4 + file_list5 + file_list6 + file_list7 
 
 #organize your data by date
 file_list.sort()
 
 
-# In[3]:
+# In[ ]:
 
 
-# Path where are the templatesl
+# Path where are the templatesl, you can create the templates from template_maker.py
 
 #template_list = glob.glob('/data/data4/veronica-scratch-rainier/templates-files/*') old templates de 1 segundo
-template_list = glob.glob ('/data/data4/veronica-scratch-rainier/swarm_august2023/templates-files/templates-three-seconds/*')
+#template_list = glob.glob ('/data/data4/veronica-scratch-rainier/swarm_august2023/templates-files/templates-three-seconds/*')
+template_list = glob.glob ('/data/data4/veronica-scratch-rainier/swarm_august2023/test-template-maker/test_4sec_templates/filtering/*')
 
 
-# In[5]:
+# In[ ]:
 
 
 # Base directory to save files like CC
-# base_directory = '/data/data4/veronica-scratch-rainier/test_corr' #prevoius correlations
 
-# Base directory
 base_directory = '/data/data4/veronica-scratch-rainier/swarm_august2023/results_CC_TMA/'
 
 # Variable folder name
-number = 6  #duration of the template (6 for test)
-folder_name = f'CC_{number}sec-templates'
+template_long = 4  #duration of the template (6 for test)
+folder_name = f'CC_{long_template}sec-templates'
 
 # Full path
 full_path = os.path.join(base_directory, folder_name)
@@ -77,22 +76,15 @@ if not os.path.exists(full_path):
 else:
     print(f"Folder '{folder_name}' already exists in '{base_directory}'.")
     
-    
-corrs = "corrs"
-#temp = "informacion de la ultima parte de cada template"
 
-daystart = file_list[0]
-dayend = file_list[-1]
 
-# Extract date, hour, and minute portion from file path, excluding "new" and "decimator"
-daystart_parts = os.path.basename(daystart).split('_')
-daystart_date_time = "_".join(daystart_parts[2:4])  # Extract the date and time parts, excluding "new_decimator" and "UTC.h5"
+# In[ ]:
 
-dayend_parts = os.path.basename(dayend).split('_')
-dayend_date_time = "_".join(dayend_parts[2:4])  # Extract the date and time parts, excluding "new_decimator" and "UTC.h5"
+
+# Parameters for the filter
 
 chan_min = 0 # from channel 0
-chan_max = 3000  #to channel 3000
+chan_max = 2500  #to channel 3000
 channel_number = chan_max -chan_min
 low_cut1 = 2
 hi_cut1 = 9.0
@@ -104,7 +96,7 @@ b, a = butter(2, (low_cut1, hi_cut1), 'bp', fs=fs)
 
 # # Buiding outputfiles and correlations for each template on the list
 
-# In[6]:
+# In[ ]:
 
 
 start_time = time.perf_counter()
@@ -127,9 +119,13 @@ for i, file in tqdm(enumerate(file_list)):
                 corrs3 = np.sum(corrs2, axis=1) / channel_number
                 
                 # Create output folder name
-                folder_name_parts = os.path.splitext(os.path.basename(tem))[0].split('_')[:2]
-                folder_name = '_'.join(folder_name_parts)
-                folder_output = os.path.join(full_path, folder_name)
+                folder_name_parts = os.path.splitext(os.path.basename(tem))[0].split('_')[:4]
+                todo_junto = folder_name_parts[2:4]
+                #print(todo_junto)
+                folder_name2 = '_'.join(todo_junto)
+                #print(folder_name2)
+                folder_output = os.path.join(full_path, folder_name2)
+                #print(folder_output)
                 
                 # Create folder if it doesn't exist
                 if not os.path.exists(folder_output):
@@ -144,7 +140,7 @@ for i, file in tqdm(enumerate(file_list)):
 
 end_time = time.perf_counter()
 execution_time = end_time - start_time
-print(f"The code took {execution_time} seconds.")
+#print(f"The code took {execution_time} seconds.")
 
 
 # # Process the data
@@ -155,17 +151,54 @@ print(f"The code took {execution_time} seconds.")
 
 # Loading timestamps
 
-# In[7]:
+# Making .h5 with the date from file_list
+# 
+
+# In[ ]:
 
 
-#time .h5 for the swarm 
-#for different data set, it has to be the time that is compared 
+first_file_name = os.path.basename(file_list[0])
+file_name_parts = first_file_name.split('_')
+date_time_part = '_'.join(file_name_parts[2:4])  # '2023-08-27_11.00.00_UTC'
+
+# Create the output filename with the desired format
+output_file_name = f"timestamps_{date_time_part}.h5"
+
+# Output directory
+output_dir_h5 = '/data/data4/veronica-scratch-rainier/swarm_august2023/results_CC_TMA'
+output_file_h5 = os.path.join(output_dir_h5, output_file_name)
+
+# Create the output directory if it does not exist
+os.makedirs(output_dir_h5, exist_ok=True)
+
+# Create the HDF5 file and save the timestamps
+with h5py.File(output_file_h5, 'w') as f:
+    # Create a dataset to store the timestamps
+    timestamps_dataset = f.create_dataset('timestamps', (0,), dtype='i8', maxshape=(None,))
+
+    # Iterate over the files and add the timestamps to the dataset
+    for file_path in tqdm(file_list, desc="Processing files"):
+        with h5py.File(file_path, 'r') as f_read:
+            # Get timestamps from the read file
+            timestamps = np.array(f_read['Acquisition/Raw[0]/RawDataTime'])
+            num_timestamps = len(timestamps)
+
+            # Extend the dataset to add the new timestamps
+            timestamps_dataset.resize((timestamps_dataset.shape[0] + num_timestamps,))
+            timestamps_dataset[-num_timestamps:] = timestamps
+
+# Print completion message
+print(f"Timestamps have been saved in the file {output_file_h5}.")
+
+
+# In[ ]:
+
 
 # Load the timestamps from the HDF5 file for the entire 7 days.
-file_path = '/data/data4/veronica-scratch-rainier/swarm_august2023/results_CC_TMA/CC_1sec-templates/timestamps.h5'
+#file_path = '/data/data4/veronica-scratch-rainier/swarm_august2023/results_CC_TMA/timestamps_27day_11h.h5'
 
 # opening the file that containg the timestamps
-with h5py.File(file_path, 'r') as f:
+with h5py.File(output_file_h5, 'r') as f:
     timestamps_pt = np.array(f['timestamps'])
 
 # Define the Pacific Timezone
@@ -187,7 +220,7 @@ datetime_objects_utc = [dt_pt.astimezone(utc_timezone) for dt_pt in datetime_obj
 time_range = datetime_objects_utc
 
 
-# In[8]:
+# In[ ]:
 
 
 # full_path is going to give you the CC data set for this run, also calcultin MAD so we can define the thresold
@@ -213,36 +246,46 @@ for folder, folder_data in zip(folders, concatenated_data_per_folder):
     
 average_mad = np.mean(list(mads_per_folder.values()))
 
-print(f"average mad {average_mad}")
+#print(f"average mad {average_mad}")
 
 
-# In[9]:
+# In[ ]:
 
 
-# Asumiendo que ya tienes definido time_range adecuadamente
+# Plots and Saving CC plots with thresold in red line
 
-# Plot the cc values for each folder
+thresold = np.round(average_mad*10, decimals=3)
+
+#Insert directory here: 
+base_directory = '/data/data4/veronica-scratch-rainier/swarm_august2023/plot-TM-results/'
+
+# Variable folder name
+long_template = 4  #duration of the template (6 for test)
+folder_name = f'CC_{long_template}sec-templates'
+
+    # Full path
+output_folder_figures = os.path.join(base_directory, folder_name)
+
+# Create folder if it doesn't exist
+if not os.path.exists(output_folder_figures):
+    os.makedirs(output_folder_figures)
+    print(f"Folder '{folder_name}' has been created in '{base_directory}'.")
+else:
+    print(f"Folder '{folder_name}' already exists in '{base_directory}'.")
 
 for i, folder_data in enumerate(concatenated_data_per_folder):
     plt.figure(figsize=(10, 5))
     plt.plot(time_range[0:len(folder_data)], folder_data, label=f'Folder {folders[i]}', color='blue', linestyle='-')
-    plt.axhline(y=0.02, color='red', linestyle='--') 
+    plt.axhline(y=thresold, color='red', linestyle='--') 
     plt.title(f'Template {folders[i]}')
     plt.xlabel('Time')
     plt.ylabel('Correlation Value')
     plt.legend()  # Agregar leyenda al gráfico
-    plt.ylim([0, 0.5])  # Establecer límites del eje y de 0 a 0.5
+    #plt.ylim([0, 0.5])  # Establecer límites del eje y de 0 a 0.5
 
-    # Guardar la figura como PNG
-    # Save the figure as PNG
-    
     # The output folder is where 
     
-    output_folder = '/data/data4/veronica-scratch-rainier/swarm_august2023/plot-TM-results/CC_plots-six-sec-templates'
-    # Directorio de salida
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-    output_file_path = os.path.join(output_folder, f'corr_values_{folders[i]}.png')  # Ruta de salida
+    output_file_path = os.path.join(output_folder_figures, f'corr_values_{folders[i]}.png')  # Ruta de salida
     plt.savefig(output_file_path, dpi=300)  # Guardar la figura como PNG
     plt.close()  # Cerrar la figura actual para evitar acumulación de figuras en memoria
 
@@ -250,7 +293,7 @@ for i, folder_data in enumerate(concatenated_data_per_folder):
 print("Process completed")
 
 
-# In[10]:
+# In[ ]:
 
 
 from datetime import datetime
@@ -258,87 +301,147 @@ from datetime import datetime
 
 # Making a catalog
 
-# In[14]:
+# In[ ]:
 
 
-# Directorio donde se guardarán los archivos CSV
-# Definir el directorio de salida
-# Definir el directorio de salida
-output_directory = "/home/velgueta/notebooks/RainierDas/csv_files"
+# For each folder a csv files that save the detections for the thresold chose it
 
-# Iterar sobre cada carpeta
-for folder in folders:
-    # Ruta de la carpeta de salida
-    folder_path = os.path.join(output_directory, folder)
+output_directory = '/home/velgueta/notebooks/RainierDas/csv_files'
+
+# Check and create the main output directory if it doesn't exist
+if not os.path.exists(output_directory):
+    os.makedirs(output_directory)
+
+# Iterate over each folder and concatenated data per folder
+
+for folder, folder_data in zip(folders, concatenated_data_per_folder):
+    # Create output directory for this folder if it doesn't exist
+    folder_output_directory = os.path.join(output_directory, folder)
+    if not os.path.exists(folder_output_directory):
+        os.makedirs(folder_output_directory)
     
-    # Ruta del archivo de salida
-    output_file_path = os.path.join(folder_path, f"detections_results_{folder}.csv")
+    # Path for the output file for this folder
+    output_file_path = os.path.join(folder_output_directory, f"detections_results_{folder}.csv")
     
-    print("Intentando abrir el archivo:", output_file_path)  # Imprimir la ruta del archivo
-    
-    # Abre el archivo de salida en modo lectura con la biblioteca CSV
-    with open(output_file_path, 'r', newline='') as file:
-        reader = csv.reader(file, delimiter=',')
-
+    # Open the output file in write mode using CSV
+    with open(output_file_path, 'w', newline='') as csvfile:
+        # Create a CSV writer
+        csv_writer = csv.writer(csvfile, delimiter=',')
         
-        # Busca el valor repetido para el umbral especificado
-        for row in reader:
-            threshold, _, detection_time_utc = row
-            if float(threshold) == target_threshold:
-                if target_threshold not in detection_times_per_threshold:
-                    detection_times_per_threshold[target_threshold] = set()
-                detection_times_per_threshold[target_threshold].add(detection_time_utc)
+        # Write headers in the CSV file
+        csv_writer.writerow(["Threshold", "Number of Detections", "First Detection Time (UTC)"])
+        
+        # Define the threshold (for example, average_mad * 10)
+        threshold = np.round(average_mad * 18, decimals=3)
+        
+        # Iterate over each detection threshold (example with a single threshold)
+        # If you want multiple thresholds, use a list of thresholds and a for loop
+        indices_above_threshold = np.where(np.abs(folder_data) > threshold)[0]
+        diff_indices = np.diff(indices_above_threshold)
+        group_changes = np.where(diff_indices > 40)[0]
+        detection_groups = np.split(indices_above_threshold, group_changes + 1)
+        
+        # Iterate over each detection group
+        for group in detection_groups:
+            if len(group) > 0:
+                # Get the first detection time in UTC format
+                first_detection_time_utc = time_range[group[0]].strftime('%Y-%m-%d_%H.%M.%S')
+                # Write a row in the CSV file
+                csv_writer.writerow([threshold, len(group), first_detection_time_utc])
+            else:
+                print("Empty group found for threshold:", threshold)
 
-# Diccionario para almacenar los valores únicos por umbral y tolerancia de tiempo
-unique_detection_times_per_threshold = {}
-
-# Itera sobre cada umbral y sus valores de tiempo
-for threshold, detection_times in detection_times_per_threshold.items():
-    unique_detection_times = set()
-    for detection_time in detection_times:
-        detection_time_obj = datetime.strptime(detection_time, '%Y-%m-%d_%H.%M.%S')
-        # Verifica si hay valores dentro de una tolerancia de 3 segundos
-        is_unique = True
-        for unique_time in unique_detection_times:
-            time_difference = abs((detection_time_obj - unique_time).total_seconds())
-            if time_difference <= 4:
-                is_unique = False
-                break
-        if is_unique:
-            unique_detection_times.add(detection_time_obj)
-    unique_detection_times_per_threshold[threshold] = unique_detection_times
-
-# Guarda los valores únicos en un nuevo archivo CSV llamado "draftcatalog_3sec.csv"
-draftcatalog_file_path = "draftcatalog_6sec.csv"
-
-with open(draftcatalog_file_path, 'w', newline='') as file:
-    writer = csv.writer(file, delimiter=',')
-    for threshold, unique_detection_times in unique_detection_times_per_threshold.items():
-        for detection_time in unique_detection_times:
-            writer.writerow([threshold, detection_time.strftime('%Y-%m-%d_%H.%M.%S')])
-
-print("Valores únicos guardados en 'draftcatalog_6sec.csv'.")
-
-
-# In[20]:
-
-
-StopIteration                             Traceback (most recent call last)
-Cell In [19], line 24
-     21 reader = csv.reader(file, delimiter=',')
-     23 # Ignora la primera fila (encabezado)
----> 24 next(reader)
-     26 # Busca el valor repetido para el umbral especificado
-     27 for row in reader:
-
-StopIteration:
+# Confirmation message
+print(f"Results have been saved in {output_directory}")
 
 
 # In[ ]:
 
 
+# cleaning the repeat values for folder, having a unique ouput file with the dates
+
 from datetime import datetime, timedelta
 
+# Directorio donde se encuentran las carpetas con los archivos CSV
+input_directory = "/home/velgueta/notebooks/RainierDas/csv_files"
+
+# Directorio donde se guardará el archivo CSV final con fechas únicas entre carpetas
+output_directory = "/home/velgueta/notebooks/RainierDas/Catalogs-csv"
+
+# Duración de tiempo para la detección (en segundos)
+template_long = 4
+
+# Umbral de tolerancia en segundos para considerar que las fechas son "repetidas"
+tolerance_seconds = 5
+
+# Diccionario para almacenar las fechas de detección únicas por carpeta
+unique_detection_dates_by_folder = {}
+
+# Función para verificar si una fecha es única respecto a las fechas de otras carpetas
+def is_unique_between_folders(all_detection_dates, new_date, tolerance_seconds):
+    for existing_date in all_detection_dates:
+        if abs((new_date - existing_date).total_seconds()) <= tolerance_seconds:
+            return False
+    return True
+
+# Iterar sobre cada carpeta en el directorio de entrada
+for folder in os.listdir(input_directory):
+    folder_path = os.path.join(input_directory, folder)
+    
+    # Ignorar elementos que no son directorios
+    if not os.path.isdir(folder_path):
+        continue
+    
+    # Conjunto para almacenar las fechas de detección únicas dentro de la carpeta actual
+    unique_detection_dates = set()
+    
+    # Iterar sobre los archivos CSV dentro de la carpeta
+    for file in os.listdir(folder_path):
+        if file.endswith(".csv"):
+            file_path = os.path.join(folder_path, file)
+            
+            # Abrir el archivo CSV y leer las fechas de detección
+            with open(file_path, 'r') as csvfile:
+                reader = csv.reader(csvfile)
+                next(reader)  # Saltar la primera fila (encabezado)
+                
+                for row in reader:
+                    _, _, detection_time_str = row[0], row[1], row[2]
+                    detection_time = datetime.strptime(detection_time_str, '%Y-%m-%d_%H.%M.%S')
+                    
+                    # Verificar si la fecha es única entre carpetas dentro del rango de tolerancia
+                    if is_unique_between_folders(unique_detection_dates, detection_time, tolerance_seconds):
+                        unique_detection_dates.add(detection_time)
+    
+    # Guardar las fechas de detección únicas en el diccionario por carpeta
+    unique_detection_dates_by_folder[folder] = unique_detection_dates
+
+# Nombre del archivo CSV final y ruta de salida
+output_file_name = f"unique_detection_dates_{template_long}s.csv"
+output_file_path_catalog = os.path.join(output_directory, output_file_name)
+
+# Escribir las fechas únicas entre carpetas en el archivo CSV final
+with open(output_file_path_catalog, 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(["Unique Detection Dates"])  # Escribir encabezado
+    
+    # Diccionario para todas las fechas de detección entre carpetas
+    all_detection_dates = set()
+    
+    # Iterar sobre cada carpeta y sus fechas únicas
+    for folder, detection_dates in unique_detection_dates_by_folder.items():
+        # Iterar sobre cada fecha única de la carpeta actual
+        for date in detection_dates:
+            # Verificar si la fecha es única entre todas las fechas de detección
+            if is_unique_between_folders(all_detection_dates, date, tolerance_seconds):
+                all_detection_dates.add(date)
+                # Escribir la fecha única en el archivo CSV final
+                writer.writerow([date.strftime('%Y-%m-%d_%H.%M.%S')])
+
+print(f"Fechas únicas entre carpetas guardadas en '{output_file_path_catalog}'.")
+
+
+# Since Here is not working accurately! working in the debugging part now!
 
 # In[ ]:
 
@@ -376,7 +479,7 @@ common_dates = []
 unmatched_dates = []
 
 # Read dates from the draftcatalog_3sec.csv file and compare with converted dates
-with open('draftcatalog_6sec.csv', 'r') as f:
+with open('unique_detection_dates_4s', 'r') as f:
     reader = csv.reader(f, delimiter=',')
     next(reader)  # Skip header line
     for row in reader:
@@ -407,6 +510,12 @@ with open(output_file_path, 'w', newline='') as f:
         writer.writerow([threshold_value, result_date.strftime('%Y-%m-%d_%H.%M.%S'), "X", "Unmatched"])
 
 print("Output file 'matched_results_finalcatalog.csv' has been generated.")
+
+
+# In[ ]:
+
+
+# Comparing 
 
 
 # Saving the of matched_results_finalcatalog figures in png format 
