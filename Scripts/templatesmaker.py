@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import h5py
 import matplotlib.pyplot as plt
 from scipy.signal import butter, filtfilt, find_peaks
